@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/nukilabs/transform/deadcode"
 	"github.com/t14raptor/go-fast/generator"
 	"github.com/t14raptor/go-fast/parser"
-	"github.com/t14raptor/go-fast/transform/deadcode"
 )
 
 func dce(in string) (string, error) {
@@ -41,9 +41,9 @@ func TestFunctionRemoval(t *testing.T) {
 
 func TestClassRemoval(t *testing.T) {
 	test(`class A { constructor() { } } class B { constructor() { } }`, ``, t)
-	test(`class A { constructor() { } } class B { constructor() { } } new B();`, `class B { constructor() { } } new B();`, t)
-	test(`class A { constructor() { } } class B { constructor() { new A(); } } new B();`, `class A { constructor() { } } class B { constructor() { new A(); } } new B();`, t)
-	test(`class A { constructor() { } } class B { constructor() { } } class C { constructor() { new C(); } } new A()`, `class A { constructor() { } } new A();`, t)
+	test(`class A { constructor() { } } class B { constructor() { } } new B();`, `class B { constructor() {} } new B();`, t)
+	test(`class A { constructor() { } } class B { constructor() { new A(); } } new B();`, `class A { constructor() {} } class B { constructor() { new A(); } } new B();`, t)
+	test(`class A { constructor() { } } class B { constructor() { } } class C { constructor() { new C(); } } new A()`, `class A { constructor() {} } new A();`, t)
 
 	test(`class A { b() { new B(); } } class B { a() { new A(); } } class C { a() { new A(); } } new B();`, `class A { b() { new B(); } } class B { a() { new A(); } } new B();`, t)
 }
@@ -87,5 +87,5 @@ func TestEmptyBlockStmt(t *testing.T) {
 }
 
 func TestObject(t *testing.T) {
-	test(`function a() { } var b = { a: a }; console.log(b.a);`, `function a() { } var b = { a: a }; console.log(b.a);`, t)
+	test(`function a() { } var b = { a: a }; console.log(b.a);`, `function a() {} var b = { a: a }; console.log(b.a);`, t)
 }

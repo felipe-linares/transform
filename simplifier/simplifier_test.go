@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/nukilabs/transform/simplifier"
 	"github.com/t14raptor/go-fast/generator"
 	"github.com/t14raptor/go-fast/parser"
-	"github.com/t14raptor/go-fast/transform/simplifier"
 )
 
 func simplify(in string) (string, error) {
@@ -502,10 +502,10 @@ func TestFoldLogicalOp1(t *testing.T) {
 
 func TestFoldLogicalOp2(t *testing.T) {
 	fold("x = function(){} && x", "x = x", t)
-	fold("x = true && function(){}", "x = function() {}", t)
+	fold("x = true && function(){}", "x = function () {}", t)
 	fold(
 		"x = [(function(){alert(x)})()] && x",
-		"x = ((function() { alert(x); })(), x)",
+		"x = ((function () { alert(x); })(), x)",
 		t,
 	)
 }
