@@ -443,15 +443,15 @@ func (s *simplifier) optimizeBinaryExpression(expr *ast.Expression) {
 			if lv.Unknown() || rv.Unknown() {
 				return 0, false
 			}
-			// Shift
+			// Shift using proper JS ToInt32/ToUint32 semantics.
 			// (Masking of 0x1f is to restrict the shift to a maximum of 31 places)
 			switch op {
 			case token.ShiftLeft:
-				return float64(int32(int32(int64(lv.Val())) << (uint32(int64(rv.Val())) & 0x1f))), true
+				return float64(toInt32(lv.Val()) << (toUint32(rv.Val()) & 0x1f)), true
 			case token.ShiftRight:
-				return float64(int32(int32(int64(lv.Val())) >> (uint32(int64(rv.Val())) & 0x1f))), true
+				return float64(toInt32(lv.Val()) >> (toUint32(rv.Val()) & 0x1f)), true
 			case token.UnsignedShiftRight:
-				return float64(uint32(uint32(int64(lv.Val())) >> (uint32(int64(rv.Val())) & 0x1f))), true
+				return float64(toUint32(lv.Val()) >> (toUint32(rv.Val()) & 0x1f)), true
 			}
 			return 0, false
 		}
@@ -616,7 +616,7 @@ func (s *simplifier) optimizeUnaryExpression(expr *ast.Expression) {
 		if val := ext.AsPureNumber(unaryExpr.Operand); val.Known() {
 			if _, frac := math.Modf(val.Val()); frac == 0.0 {
 				s.changed = true
-				result := float64(^int32(int64(val.Val())))
+				result := float64(^toInt32(val.Val()))
 				expr.Expr = &ast.NumberLiteral{Idx: unaryExpr.Idx, Value: result}
 			}
 			// TODO: Report error
@@ -718,11 +718,11 @@ func (s *simplifier) performArithmeticOp(op token.Token, left, right *ast.Expres
 
 	switch op {
 	case token.And:
-		return tryReplace(float64(int32(int64(lv.Val())) & int32(int64(rv.Val()))))
+		return tryReplace(float64(toInt32(lv.Val()) & toInt32(rv.Val())))
 	case token.Or:
-		return tryReplace(float64(int32(int64(lv.Val())) | int32(int64(rv.Val()))))
+		return tryReplace(float64(toInt32(lv.Val()) | toInt32(rv.Val())))
 	case token.ExclusiveOr:
-		return tryReplace(float64(int32(int64(lv.Val())) ^ int32(int64(rv.Val()))))
+		return tryReplace(float64(toInt32(lv.Val()) ^ toInt32(rv.Val())))
 	case token.Remainder:
 		if rv.Val() == 0.0 {
 			return ext.Unknown[float64]()
@@ -1192,4 +1192,33 @@ func Simplify(p ast.VisitableNode, resolve bool) {
 	visitor := &simplifier{}
 	visitor.V = visitor
 	p.VisitWith(visitor)
+}
+
+// toInt32 implements JavaScript's ToInt32 abstract operation.
+func toInt32(v float64) int32 {
+	if math.IsNaN(v) || math.IsInf(v, 0) || v == 0 {
+		return 0
+	}
+	n := math.Copysign(math.Floor(math.Abs(v)), v)
+	n = math.Mod(n, 4294967296) // 2^32
+	if n < 0 {
+		n += 4294967296
+	}
+	if n >= 2147483648 { // 2^31
+		return int32(n - 4294967296)
+	}
+	return int32(n)
+}
+
+// toUint32 implements JavaScript's ToUint32 abstract operation.
+func toUint32(v float64) uint32 {
+	if math.IsNaN(v) || math.IsInf(v, 0) || v == 0 {
+		return 0
+	}
+	n := math.Copysign(math.Floor(math.Abs(v)), v)
+	n = math.Mod(n, 4294967296)
+	if n < 0 {
+		n += 4294967296
+	}
+	return uint32(n)
 }
