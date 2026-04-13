@@ -116,15 +116,16 @@ func (s *simplifier) optimizeMemberExpression(expr *ast.Expression) {
 			if _, frac := math.Modf(float64(idx)); frac != 0.0 || idx < 0.0 || int(idx) >= len(obj.Value) {
 				return
 			}
-			var input string
+			var b strings.Builder
 			for _, c := range obj.Value {
 				surrogates := utf16.Encode([]rune{c})
 				if len(surrogates) == 2 {
-					input += fmt.Sprintf("\\u%04X\\u%04X", surrogates[0], surrogates[1])
+					fmt.Fprintf(&b, "\\u%04X\\u%04X", surrogates[0], surrogates[1])
 				} else {
-					input += string(c)
+					b.WriteRune(c)
 				}
 			}
+			input := b.String()
 			value, ok := nthChar(input, int(idx))
 			if !ok {
 				return
@@ -477,9 +478,9 @@ func (s *simplifier) optimizeUnaryExpression(expr *ast.Expression) {
 	case token.Minus:
 		switch unaryExpr.Operand.Kind() {
 		case ast.ExprIdent:
-			operand := unaryExpr.Operand.MustIdent()
-			if operand.Name == "Infinity" {
-			} else if operand.Name == "NaN" {
+			switch unaryExpr.Operand.MustIdent().Name {
+			case "Infinity":
+			case "NaN":
 				s.changed = true
 				*expr = *unaryExpr.Operand
 			}
