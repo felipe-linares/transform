@@ -8,3 +8,5 @@ require (
 )
 
 require github.com/nukilabs/ftoa v1.0.0 // indirect
+
+replace github.com/t14raptor/go-fast => /Users/robin/Developer/robinsamuel/go-fAST

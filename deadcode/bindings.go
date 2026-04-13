@@ -27,7 +27,7 @@ func (v *bindingCollector) VisitFunctionDeclaration(n *ast.FunctionDeclaration) 
 
 func (v *bindingCollector) VisitBindingTarget(n *ast.BindingTarget) {
 	n.VisitChildrenWith(v)
-	if ident, ok := n.Target.(*ast.Identifier); ok {
+	if ident, ok := n.Ident(); ok {
 		v.add(ident.ToId())
 	}
 }

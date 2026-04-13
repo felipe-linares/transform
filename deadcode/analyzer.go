@@ -144,10 +144,8 @@ func (a *analyzer) Add(id ast.Id, assign bool) {
 func (a *analyzer) VisitCallExpression(n *ast.CallExpression) {
 	n.VisitChildrenWith(a)
 
-	if ident, ok := n.Callee.Expr.(*ast.Identifier); ok {
-		if ident.Name == "eval" {
-			a.scope.foundDirectEval = true
-		}
+	if ident, ok := n.Callee.Ident(); ok && ident.Name == "eval" {
+		a.scope.foundDirectEval = true
 	}
 }
 
@@ -164,14 +162,14 @@ func (a *analyzer) VisitExpression(n *ast.Expression) {
 	old := a.inVarDecl
 	a.inVarDecl = false
 	n.VisitChildrenWith(a)
-	if ident, ok := n.Expr.(*ast.Identifier); ok {
+	if ident, ok := n.Ident(); ok {
 		a.Add(ident.ToId(), false)
 	}
 	a.inVarDecl = old
 }
 
 func (a *analyzer) VisitAssignExpression(n *ast.AssignExpression) {
-	if ident, ok := n.Left.Expr.(*ast.Identifier); ok && n.Operator == token.Assign {
+	if ident, ok := n.Left.Ident(); ok && n.Operator == token.Assign {
 		a.Add(ident.ToId(), true)
 		n.Right.VisitWith(a)
 	} else {
@@ -198,7 +196,7 @@ func (a *analyzer) VisitFunctionLiteral(n *ast.FunctionLiteral) {
 		}
 
 		if v.scope.foundArguments {
-			v.scope.bindingsAffectedByArguments = collectIdentifiers(&n.ParameterList)
+			v.scope.bindingsAffectedByArguments = collectIdentifiers(n.ParameterList)
 		}
 	})
 }
@@ -215,7 +213,7 @@ func (a *analyzer) VisitFunctionDeclaration(n *ast.FunctionDeclaration) {
 func (a *analyzer) VisitBindingTarget(n *ast.BindingTarget) {
 	n.VisitChildrenWith(a)
 	if !a.inVarDecl {
-		if ident, ok := n.Target.(*ast.Identifier); ok {
+		if ident, ok := n.Ident(); ok {
 			a.Add(ident.ToId(), true)
 		}
 	}
@@ -223,7 +221,7 @@ func (a *analyzer) VisitBindingTarget(n *ast.BindingTarget) {
 
 func (a *analyzer) VisitProperty(n *ast.Property) {
 	n.VisitChildrenWith(a)
-	if short, ok := n.Prop.(*ast.PropertyShort); ok {
+	if short, ok := n.Short(); ok {
 		a.Add(short.Name.ToId(), false)
 	}
 }

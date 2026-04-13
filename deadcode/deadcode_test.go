@@ -41,9 +41,9 @@ func TestFunctionRemoval(t *testing.T) {
 
 func TestClassRemoval(t *testing.T) {
 	test(`class A { constructor() { } } class B { constructor() { } }`, ``, t)
-	test(`class A { constructor() { } } class B { constructor() { } } new B();`, `class B { constructor() {} } new B();`, t)
-	test(`class A { constructor() { } } class B { constructor() { new A(); } } new B();`, `class A { constructor() {} } class B { constructor() { new A(); } } new B();`, t)
-	test(`class A { constructor() { } } class B { constructor() { } } class C { constructor() { new C(); } } new A()`, `class A { constructor() {} } new A();`, t)
+	test(`class A { constructor() { } } class B { constructor() { } } new B();`, `class B { constructor() { } } new B();`, t)
+	test(`class A { constructor() { } } class B { constructor() { new A(); } } new B();`, `class A { constructor() { } } class B { constructor() { new A(); } } new B();`, t)
+	test(`class A { constructor() { } } class B { constructor() { } } class C { constructor() { new C(); } } new A()`, `class A { constructor() { } } new A();`, t)
 
 	test(`class A { b() { new B(); } } class B { a() { new A(); } } class C { a() { new A(); } } new B();`, `class A { b() { new B(); } } class B { a() { new A(); } } new B();`, t)
 }
