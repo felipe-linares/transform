@@ -7,8 +7,8 @@ import (
 	"github.com/nukilabs/transform/internal/cfg"
 	"github.com/t14raptor/go-fast/ast"
 	"github.com/t14raptor/go-fast/ast/ext"
+	"github.com/t14raptor/go-fast/parser/scanner/token"
 	"github.com/t14raptor/go-fast/resolver"
-	"github.com/t14raptor/go-fast/token"
 )
 
 // Eliminate removes dead code from the AST.
@@ -133,14 +133,14 @@ func (ts *treeShaker) VisitExpression(n *ast.Expression) {
 	n.VisitChildrenWith(ts)
 
 	switch expr := n.Expr.(type) {
-	case *ast.BinaryExpression:
+	case *ast.LogicalExpression:
 		switch expr.Operator {
-		case token.LogicalAnd:
+		case ast.LogicalAnd:
 			if val := ext.AsPureBool(expr.Left); val.Known() && !val.Val() {
 				n.Expr = expr.Left.Expr
 				ts.changed = true
 			}
-		case token.LogicalOr:
+		case ast.LogicalOr:
 			if val := ext.AsPureBool(expr.Left); val.Known() && val.Val() {
 				n.Expr = expr.Left.Expr
 				ts.changed = true
@@ -187,7 +187,7 @@ func (ts *treeShaker) VisitStatement(n *ast.Statement) {
 }
 
 func (ts *treeShaker) VisitUnaryExpression(n *ast.UnaryExpression) {
-	if n.Operator == token.Delete {
+	if n.Operator == ast.UnaryDelete {
 		return
 	}
 	n.VisitChildrenWith(ts)

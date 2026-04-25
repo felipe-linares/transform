@@ -7,7 +7,6 @@ import (
 
 	"github.com/t14raptor/go-fast/ast"
 	"github.com/t14raptor/go-fast/ast/ext"
-	"github.com/t14raptor/go-fast/token"
 )
 
 func isNonObj(n *ast.Expression) bool {
@@ -19,7 +18,7 @@ func isNonObj(n *ast.Expression) bool {
 			return true
 		}
 	case *ast.UnaryExpression:
-		if n.Operator == token.Not || n.Operator == token.Minus || n.Operator == token.Void {
+		if n.Operator == ast.UnaryLogicalNot || n.Operator == ast.UnaryNegation || n.Operator == ast.UnaryVoid {
 			return isNonObj(n.Operand)
 		}
 	}
