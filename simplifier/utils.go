@@ -132,9 +132,6 @@ func ptrExpr(e ast.Expression) *ast.Expression {
 	return &e
 }
 
-// propNameEq reports whether a static (non-computed) property key equals name.
-// Identifier and string keys are represented as string-literal property names in
-// the dev AST; numeric keys compare by their canonical string form.
 func propNameEq(key *ast.PropertyName, name string) bool {
 	switch key.Kind() {
 	case ast.PropNameStringLit:
