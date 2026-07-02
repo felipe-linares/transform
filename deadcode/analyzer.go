@@ -209,7 +209,7 @@ func (a *analyzer) VisitFunctionDeclaration(n *ast.FunctionDeclaration) {
 	})
 }
 
-func (a *analyzer) VisitBindingTarget(n *ast.Pattern) {
+func (a *analyzer) VisitPattern(n *ast.Pattern) {
 	n.VisitChildrenWith(a)
 	if !a.inVarDecl {
 		if ident, ok := n.Identifier(); ok {
